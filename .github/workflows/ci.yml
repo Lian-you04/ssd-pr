@@ -1,0 +1,120 @@
+# ============================================
+# SecureShop — CI/CD Security Pipeline
+# ============================================
+name: SecureShop CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read       # Least-privilege: read-only by default
+
+jobs:
+  # --- Build & Unit Tests ---
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Run backend unit tests
+        run: cd backend && npm run test:unit
+
+      - name: Run backend integration tests
+        run: cd backend && npm run test:integration
+
+      - name: Run security tests
+        run: cd backend && npm run test:security
+
+      - name: Run frontend tests
+        run: cd frontend && npm test -- --watchAll=false
+
+  # --- Static Analysis (SAST) ---
+  sast:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
+      - name: Run ESLint with security plugin
+        run: cd backend && npx eslint src/ --config .eslintrc.security.js --format json -o ../security/sast/reports/eslint-report.json || true
+
+      # TODO: Add additional SAST tools (e.g., Semgrep, CodeQL)
+
+  # --- Secret Scanning ---
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # TODO: Add secret scanning tool (e.g., Gitleaks, TruffleHog)
+      - name: Secret scan placeholder
+        run: echo "TODO — Integrate Gitleaks or TruffleHog"
+
+  # --- Dependency Analysis (SCA) ---
+  sca:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
+      - name: Run npm audit
+        run: cd backend && npm audit --json > ../security/sca/reports/npm-audit.json || true
+
+      # TODO: Add additional SCA (e.g., OWASP Dependency-Check, Snyk)
+
+  # --- SBOM Generation ---
+  sbom:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
+      # TODO: Generate CycloneDX SBOM
+      - name: SBOM generation placeholder
+        run: echo "TODO — Generate SBOM with @cyclonedx/cyclonedx-npm"
