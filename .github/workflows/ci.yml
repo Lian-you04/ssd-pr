@@ -23,16 +23,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
 
       - name: Install backend dependencies
-        run: cd backend && npm ci
+        run: cd backend && npm install
 
       - name: Install frontend dependencies
-        run: cd frontend && npm ci
+        run: cd frontend && npm install
 
       - name: Run backend unit tests
         run: cd backend && npm run test:unit
@@ -59,7 +55,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: cd backend && npm ci
+        run: cd backend && npm install
 
       - name: Run ESLint with security plugin
         run: cd backend && npx eslint src/ --config .eslintrc.security.js --format json -o ../security/sast/reports/eslint-report.json || true
@@ -91,7 +87,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: cd backend && npm ci
+        run: cd backend && npm install
 
       - name: Run npm audit
         run: cd backend && npm audit --json > ../security/sca/reports/npm-audit.json || true
@@ -113,7 +109,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: cd backend && npm ci
+        run: cd backend && npm install
 
       # TODO: Generate CycloneDX SBOM
       - name: SBOM generation placeholder
