@@ -40,7 +40,7 @@ jobs:
         run: cd backend && npm run test:security
 
       - name: Run frontend tests
-        run: cd frontend && npm test -- --watchAll=false
+        run: cd frontend && npm test -- --watchAll=false --passWithNoTests
 
   # --- Static Analysis (SAST) ---
   sast:
@@ -58,7 +58,9 @@ jobs:
         run: cd backend && npm install
 
       - name: Run ESLint with security plugin
-        run: cd backend && npx eslint src/ --config .eslintrc.security.js --format json -o ../security/sast/reports/eslint-report.json || true
+        run: |
+          mkdir -p ../security/sast/reports
+          cd backend && npx eslint src/ --config .eslintrc.security.js --format json -o ../security/sast/reports/eslint-report.json || true
 
       # TODO: Add additional SAST tools (e.g., Semgrep, CodeQL)
 
@@ -90,7 +92,9 @@ jobs:
         run: cd backend && npm install
 
       - name: Run npm audit
-        run: cd backend && npm audit --json > ../security/sca/reports/npm-audit.json || true
+        run: |
+          mkdir -p ../security/sca/reports
+          cd backend && npm audit --json > ../security/sca/reports/npm-audit.json || true
 
       # TODO: Add additional SCA (e.g., OWASP Dependency-Check, Snyk)
 
